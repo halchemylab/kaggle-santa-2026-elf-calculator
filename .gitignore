@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+data/*
+!data/.gitkeep
+!data/practice_puzzles.csv
+submissions/*
+!submissions/.gitkeep
+cache/
+.env
+kaggle.json
+*.zip
