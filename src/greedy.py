@@ -19,7 +19,8 @@ def apply(op, a, b):
     return a // b if b and a % b == 0 else None
 
 
-def solve_one(puzzle, *, base=8, order='ascending', seed=0, greedy=True):
+def solve_one(puzzle, *, base=8, order='ascending', seed=0, greedy=True,
+              factor_offset=False):
     if base not in (2, 4, 8, 16):
         raise ValueError('base must be 2, 4, 8, or 16')
     if order not in ('ascending', 'descending', 'random'):
@@ -79,6 +80,68 @@ def solve_one(puzzle, *, base=8, order='ascending', seed=0, greedy=True):
                         return op, a, b
         return None
 
+    def construct(target):
+        # Reuse the longest stored prefix, keeping all partial values <= target.
+        digits, prefix = [], target
+        source = lookup(prefix)
+        while source is None:
+            prefix, digit = divmod(prefix, base)
+            digits.append(digit)
+            source = lookup(prefix)
+        if not digits:
+            return source
+        destination = allocate()
+        for digit in reversed(digits):
+            emit('*', source, constants[base], destination)
+            if digit:
+                emit('+', destination, constants[digit], destination)
+            source = destination
+        return source
+
+    def short_plan(target):
+        """Compare bounded factor/offset plans with plain base construction.
+
+        Construct just one quotient or difference by base expansion. Factors are
+        retained values; signed offsets are existing constants 1 through base.
+        No recursive factor search or trial division of large numbers is used.
+        """
+        stored = {v: i for i, v in enumerate(values) if v is not None}
+        costs = {}
+
+        def cost(value):
+            if value not in costs:
+                prefix, steps = value, 0
+                while prefix not in stored:
+                    prefix, digit = divmod(prefix, base)
+                    steps += 1 + bool(digit)
+                costs[value] = steps
+            return costs[value]
+
+        best_cost, best = cost(target), None
+        offsets = [0] + [sign * d for d in constants for sign in (1, -1)]
+        for value, register in stored.items():
+            # Nearby retained values: target = value +/- constructed difference.
+            difference = abs(target - value)
+            if 0 < difference < target:
+                steps = cost(difference) + 1
+                if steps < best_cost:
+                    best_cost = steps
+                    best = (difference, '+' if target > value else '-', register, 0)
+            if value <= 1:
+                continue
+            for offset in offsets:
+                product = target - offset
+                if not 1 <= product <= puzzle.value_limit:
+                    continue
+                quotient, remainder = divmod(product, value)
+                if remainder or not 1 <= quotient < target:
+                    continue
+                steps = cost(quotient) + 1 + bool(offset)
+                if steps < best_cost:
+                    best_cost = steps
+                    best = (quotient, '*', register, offset)
+        return best
+
     while remaining:
         if greedy:
             direct = immediate()
@@ -90,19 +153,22 @@ def solve_one(puzzle, *, base=8, order='ascending', seed=0, greedy=True):
         if existing is not None:
             emit('*', existing, one, allocate())
             continue
-        # Find the longest already stored base prefix; every partial result <= target.
-        digits, prefix = [], target
-        source = lookup(prefix)
-        while source is None:
-            prefix, digit = divmod(prefix, base)
-            digits.append(digit)
-            source = lookup(prefix)
-        destination = allocate()
-        for digit in reversed(digits):
-            emit('*', source, constants[base], destination)
-            if digit:
-                emit('+', destination, constants[digit], destination)
-            source = destination
+        plan = short_plan(target) if factor_offset else None
+        if plan is None:
+            construct(target)
+            continue
+        value, op, retained, offset = plan
+        # Preserve operands needed after constructing the quotient/difference,
+        # even when every register is occupied and allocation must evict a value.
+        was_protected = retained in protected
+        protected.add(retained)
+        source = construct(value)
+        emit(op, retained, source, destination := allocate())
+        if offset:
+            emit('+' if offset > 0 else '-', destination,
+                 constants[abs(offset)], destination)
+        if not was_protected:
+            protected.remove(retained)
     validate(puzzle, program)
     return program
 

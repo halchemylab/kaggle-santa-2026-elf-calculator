@@ -3,6 +3,19 @@
 The validator, greedy solver, benchmark runner, and offline dashboard are implemented.
 See README.md for commands and docs/benchmarking.md for experiment definitions.
 
+## Latest experiment: factor/offset construction
+
+Implemented `factor_offset` in the common solver interface. On the 160 development
+puzzles, with seeds 2026–2028 and 13 candidates, it used 64,294 / 64,290 / 64,309
+instructions versus greedy's 74,030 per seed: about 13.15% fewer. Each seed improved
+144 puzzles, tied 16, and regressed on none. All 1,920 programs and all exported
+CSVs validated. Mean summed task time was about 2.2 times greedy's in this run.
+Run: `20261122T210642Z-9ed33410`; wall time 148.3 seconds. Holdout untouched.
+
+Next: inspect these development results, decide whether to keep the settings,
+then evaluate holdout explicitly. If adopting the method for export, expose the
+common solver interface in `src.solve`, which still uses the original greedy.
+
 ## Resume
 
 1. Pull the latest code. Practice puzzles and the fixed split are included.
@@ -12,8 +25,8 @@ See README.md for commands and docs/benchmarking.md for experiment definitions.
 3. Compare `base_expansion` as reference against `greedy`, with the same seed/run.
    Inspect the puzzles that improved or regressed. Visually check the dashboard:
    interaction tests passed, but no browser was connected for layout inspection.
-4. Choose one focused improvement, such as constructing targets from factors or
-   offsets of retained values. Benchmark on the development split with the same
+4. Review the implemented factor/offset method against greedy. Benchmark further
+   changes on the development split with the same
    settings and seeds, and inspect both instruction savings and added runtime.
 5. Keep the 40-puzzle holdout for evaluation after selecting the new settings.
    Learning-guided search can come later, once we have useful search examples.
@@ -40,6 +53,6 @@ target coverage against the Data rules. Work on practice algorithms can continue
 
 Suggested next prompt:
 
-> Read AGENTS.md and docs/next_session.md. Help me inspect base_expansion versus
-> greedy on the development split, then implement one targeted improvement and
-> compare it under the same benchmark settings. Leave the holdout untouched.
+> Read AGENTS.md and docs/next_session.md. Review factor_offset versus greedy on
+> the development split and help select the next experiment. Leave the holdout
+> untouched unless we explicitly choose to evaluate the selected settings.

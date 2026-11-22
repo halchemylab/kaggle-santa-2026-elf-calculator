@@ -32,6 +32,7 @@ Positive steps saved always means the candidate uses fewer instructions.
 | binary | One deterministic base-2 construction; reused stored prefixes are allowed |
 | base_expansion | Binary fallback plus base-4/8/16 constructions; immediate-target scan disabled |
 | greedy | Identical candidate schedule to base_expansion, with immediate-target scan enabled |
+| factor_offset | Greedy plus retained-value factors with small signed offsets, and nearby retained-value sums/differences |
 | beam | Binary fallback plus bounded primitive-instruction beam search on tiny puzzles |
 
 All methods use `solve(puzzle, method, seed=..., budget=SearchBudget(...))` in
@@ -48,6 +49,17 @@ ascending targets, then descending, then seeded random orders. The default cap o
 13 includes the binary fallback and 12 alternative constructions. Seeds influence
 random orders; binary and the current beam search are deterministic. Repeated
 deterministic seeds provide timing repetitions, not different search trajectories.
+
+`factor_offset` uses that same candidate schedule and binary fallback. Before
+expanding a target, it estimates plans of the form `retained * quotient +/- offset`
+and `retained +/- difference`. Offsets are stored constants 1 through the candidate
+base (or zero); one quotient/difference is constructed with ordinary prefix reuse.
+Only plans strictly cheaper than direct expansion are emitted. Required retained
+operands are protected against eviction. Every intermediate must respect the value
+limit, including products before a subtraction. This is bounded local planning,
+not prime factorization or recursive search. Changing the path can change later
+register reuse, so individual puzzles can regress against greedy despite cheaper
+local plans. Equal candidate caps also do not imply equal runtime.
 
 Beam search currently applies only when value_limit <= 512, distinct targets <= 6,
 and initial values <= 8. It searches individual legal instructions, preserves
@@ -136,6 +148,38 @@ improvement over binary here. Enabling immediate-target greediness saves another
 106 net instructions under this candidate schedule. Beam improves some tiny puzzles
 but falls back to binary for large ones. Three matching seed totals do not prove
 randomized target ordering will never help.
+
+## Development experiment results
+
+### Factor/offset development experiment (November 22, 2026)
+
+Run `20261122T210642Z-9ed33410`, label `Factor and retained-value offset experiment`:
+160 development puzzles, seeds 2026/2027/2028, 13 candidates, four workers, no time
+cutoff, no cache access. Puzzle definitions matched the recreated baseline run
+`20261122T210130Z-5034510c`. All 1,920 programs validated, and all 12 exported CSVs
+were independently replayed successfully. The holdout was not evaluated.
+
+| Method | Seed 2026 | Seed 2027 | Seed 2028 | Mean summed task seconds per seed |
+| --- | ---: | ---: | ---: | ---: |
+| binary | 226,626 | 226,626 | 226,626 | 1.81 |
+| base_expansion | 74,136 | 74,136 | 74,136 | 11.31 |
+| greedy | 74,030 | 74,030 | 74,030 | 55.20 |
+| factor_offset | 64,294 | 64,290 | 64,309 | 122.22 |
+
+Factor/offset saved 9,721–9,740 instructions (13.13–13.16%) versus greedy. Each
+seed improved 144 puzzles, tied 16, and regressed on none. The largest saving was
+146 instructions on `practice_0153`. This is an observed result, not a guarantee
+against future regressions. The method used about 2.2 times greedy's mean summed
+task time in this run; equal candidate counts do not equalize work. Total run wall
+time was 148.3 seconds. The combined best-per-puzzle portfolio across all methods
+and seeds was 64,238 instructions, separate from any individual method/seed score.
+
+The new method is available through `src.solvers` and `src.benchmark`; the
+submission-solving CLI still uses the original greedy implementation.
+
+```powershell
+python -m src.benchmark --methods binary base_expansion greedy factor_offset --seeds 2026 2027 2028 --candidates 13 --workers 4 --split train --label "Factor and retained-value offset experiment"
+```
 
 ## Adding an experiment
 

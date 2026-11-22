@@ -18,7 +18,7 @@ class SolverInterfaceTests(unittest.TestCase):
     def test_methods_return_valid_fresh_solutions(self):
         p = puzzle(targets=(2, 5), limit=8)
         baseline = solve(p, 'binary')
-        for method in ('binary', 'base_expansion', 'greedy', 'beam'):
+        for method in ('binary', 'base_expansion', 'greedy', 'factor_offset', 'beam'):
             result = solve(p, method, budget=SearchBudget(max_candidates=7))
             validate(p, result.program)
             self.assertLessEqual(len(result.program), len(baseline.program))
@@ -44,8 +44,9 @@ class SolverInterfaceTests(unittest.TestCase):
 
     def test_repeated_seed_is_reproducible(self):
         p = puzzle(targets=(123, 456, 789), limit=10000)
-        a = solve(p, 'greedy', seed=42)
-        self.assertEqual(a.program, solve(p, 'greedy', seed=42).program)
+        for method in ('greedy', 'factor_offset'):
+            a = solve(p, method, seed=42)
+            self.assertEqual(a.program, solve(p, method, seed=42).program)
 
     def test_invalid_budgets_rejected(self):
         for settings in ({'seconds': float('nan')}, {'seconds': 0}, {'seconds': float('inf')},

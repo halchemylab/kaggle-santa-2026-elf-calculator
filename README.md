@@ -27,8 +27,9 @@ scores are written to `submissions/solve_report.json`.
 python -m src.benchmark --workers 4 --label "First comparison"
 ```
 
-This compares binary construction, larger-base construction, greedy, and a tiny-puzzle
-beam search on a fixed 160-puzzle development set, with three seeds. Every result is
+This compares binary construction, larger-base construction, greedy, factor/offset
+construction, and a tiny-puzzle beam search on a fixed 160-puzzle development set,
+with three seeds. Every result is
 measured fresh and independently validated. It saves a new run under `runs/` and
 automatically rebuilds **`runs/dashboard.html`**. Open that file in your browser.
 
@@ -126,9 +127,12 @@ register. Partial base-expansion values never exceed their target. A determinist
 binary construction is always tried as a fallback and comparison. Every candidate
 is independently replayed before selection, caching, and CSV export.
 
-This bounded greedy strategy is a starting point. It does not perform arbitrary
-intermediate exploration, prime factorization, beam search, or instruction
-rewriting. These are useful next steps after measuring the scored baseline.
+The benchmark-only `factor_offset` method also tries retained-value products with
+small signed offsets and sums/differences with retained values. It constructs one
+quotient or difference by base expansion and uses the plan only when its estimated
+instruction count is shorter than plain expansion. It uses the same candidate
+schedule and binary fallback as greedy. `src.solve` still uses the original greedy
+method. A separate experimental beam method handles tiny puzzles only.
 
 ## Project map
 
