@@ -1,0 +1,60 @@
+Work in this repository on Kaggle Santa 2026 — The Elf Calculator. Read AGENTS.md,
+README.md, docs/competition.md, and docs/data_notes.md first. Inspect existing code
+and git status before changing anything. Keep working infrastructure and improve
+it incrementally; do not start over.
+
+Goal: minimize total arithmetic instructions over scored_0001 through scored_1000.
+Each puzzle has starting_values, targets, value_limit, and 48 registers. An
+instruction is [op, source_a, source_b, destination] for +, -, *, or exact /.
+Both operands are read before destination overwrite; sources may be identical.
+Only defined registers can be read. Every value must be a positive integer <= the
+puzzle's limit. Use Python integers. Programs must cover every target at least
+once, use <=4096 instructions, and occupy <=131072 UTF-8 bytes per program cell.
+Every instruction counts; every instruction must be legal even after coverage.
+One invalid puzzle rejects the submission. CSV columns must be exactly id,program,
+with all 1000 scored IDs once each and JSON instructions escaped by csv.writer.
+
+First inspect available files. data/practice_puzzles.csv contains practice data.
+Additional downloads go in data/. If scored puzzles or sample_submission.csv
+are absent, continue useful work on practice puzzles, state precisely what is
+missing, and never claim to have produced a competition-ready submission. Confirm
+register initialization and whether initial values count as covered targets from
+the official Data page or replay code. Until then retain conservative explicit
+coverage. Read per-puzzle limits; the pasted global upper bound was incomplete.
+
+Run tests and score the official sample if available. Inspect schema and a few
+local rows, target counts/magnitudes, starts, limits, and practice metadata. Update
+docs/data_notes.md with findings and any unresolved rules. Keep the existing
+data/practice_puzzles.csv tracked so it is available on other computers. Keep
+other raw data and generated submissions out of new commits.
+
+The repository already has an independent simulator, CSV validation, a greedy
+solver with base-expansion fallback, deterministic restarts, multiprocessing,
+fingerprinted best-program caching, and a merge command. Assess these first.
+Run the current solver and retain its report as the starting comparison. Distinguish
+the local binary construction baseline from the official sample submission score.
+
+Improve the greedy solver using measured results: immediate target hits, useful
+shared intermediates, factors and exact quotients, offsets from retained targets,
+addition chains, and future-use register retention. Keep a reliable fallback that
+works within both value and instruction limits. Parameterize heuristics and seeds;
+compare multiple target orders and keep only shorter independently valid programs.
+Do not assume each heuristic improves every puzzle. Preserve an unaffected valid
+candidate if an experimental search fails. Avoid an unbounded intermediate search.
+
+Keep the validator independent from the generator. Tests should cover exact division,
+undefined registers, invalid indices and booleans, nonpositive results, overflow,
+source/destination aliasing, repeated targets, initial-target policy, historical
+coverage after overwrite, instruction/byte limits, malformed JSON/CSV, duplicate,
+unknown and missing IDs, and cache identity. Validate the official sample when
+available. Test randomized puzzles and the largest local targets.
+
+Use the standard library unless I authorize more dependencies. Do not log credentials,
+publish data, join the competition, or submit to Kaggle automatically. Do not commit
+or push unless requested. Validate before cache updates and before CSV export.
+Keep one parent writer per cache; worker processes only compute candidates.
+
+Finish with concrete changes, tests and results, binary and official baseline scores
+(where available), best greedy total, runtime, the hardest puzzles, exact output
+paths, unresolved rule assumptions or missing inputs, and a small set of next
+experiments such as beam search, factor-aware chains, or safe program shortening.
