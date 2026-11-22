@@ -18,3 +18,7 @@ Read README.md and docs/competition.md before changing solver behavior.
   an existing valid solution only with a shorter valid solution.
 - Run `python -m unittest discover -s tests -v` after behavioral changes.
 - Run commands as modules, e.g. `python -m src.solve`, from the repository root.
+- Benchmark through src.solvers with explicit budgets/seeds; never read cached
+  solutions to improve a fresh benchmark score. Benchmark output belongs in runs/.
+- Keep benchmarks/practice_split.json fixed. Tune on train; evaluate holdout
+  explicitly after selecting settings. Compare matching puzzle fingerprints only.

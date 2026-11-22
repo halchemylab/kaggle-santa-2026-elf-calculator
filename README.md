@@ -4,6 +4,8 @@ Python tools for exact program validation and a first greedy arithmetic solver.
 The existing GitHub repository name, `kaggle-santa-2026-elf-calculator`, works well;
 no rename is needed. Python 3.11+ is sufficient. There are no external dependencies.
 
+Returning to the project? Start with [next-session notes](docs/next_session.md).
+
 ## Quick start (PowerShell, repository root)
 
 ```powershell
@@ -18,6 +20,45 @@ construction baseline with base-4/8/16 greedy candidates, tries ascending,
 descending, and seeded random target orders, and validates every result. It
 prints total instruction counts, runtime, and the 20 hardest puzzles. Detailed
 scores are written to `submissions/solve_report.json`.
+
+## Compare algorithms and review runs
+
+```powershell
+python -m src.benchmark --workers 4 --label "First comparison"
+```
+
+This compares binary construction, larger-base construction, greedy, and a tiny-puzzle
+beam search on a fixed 160-puzzle development set, with three seeds. Every result is
+measured fresh and independently validated. It saves a new run under `runs/` and
+automatically rebuilds **`runs/dashboard.html`**. Open that file in your browser.
+
+The dashboard includes run and method selectors, instruction counts, runtime,
+per-puzzle wins/ties/losses, search and sorting, seed consistency, validated program
+downloads, and run history. You can compare two runs with matching puzzle definitions.
+Incompatible puzzle sets are blocked; unequal configured budgets are flagged.
+
+For a quicker experiment:
+
+```powershell
+python -m src.benchmark --methods binary base_expansion greedy --seeds 2026 --candidates 7 --workers 4 --label "Quick test"
+```
+
+The frozen split is in `benchmarks/practice_split.json`: 160 development puzzles and
+40 holdout puzzles. `--split holdout` evaluates the holdout explicitly; use it after
+choosing settings on development puzzles. The earlier setup run used all 200 puzzles,
+so this holdout is a future tuning boundary rather than a completely unseen dataset.
+See [benchmark details](docs/benchmarking.md) for budgets, saved artifacts, adding
+solvers, and the first comparison results. Benchmark runs do not read or update the
+best-known cache unless you explicitly pass `--update-cache cache/best`.
+
+Rebuild the dashboard from saved runs at any time:
+
+```powershell
+python -m src.dashboard
+```
+
+Run records and generated dashboards are ignored by Git. Source code and the frozen
+split are tracked; on another computer, run the command again to create local results.
 
 ## Files you still need
 
@@ -101,6 +142,8 @@ kaggle-santa-2026-elf-calculator/
 │   └── practice_puzzles.csv # Tracked practice input
 ├── src/                   # Validator, solver, scoring, and cache tools
 ├── tests/
+├── benchmarks/            # Frozen development/holdout IDs
+├── runs/                  # Benchmark records and local dashboard (ignored)
 ├── submissions/           # Generated CSVs and reports (ignored)
 └── cache/                 # Best-known programs (ignored)
 ```
@@ -112,4 +155,6 @@ kaggle-santa-2026-elf-calculator/
 - `src/io.py`, `src/validator.py`, `src/score.py`: parsing, replay, and scoring.
 - `src/greedy.py`, `src/solve.py`: greedy construction and parallel runs.
 - `src/cache.py`, `src/merge.py`: validated best-known solutions and export.
+- `src/solvers.py`, `src/benchmark.py`: common solver interface and fresh comparisons.
+- `src/dashboard.py`, `src/dashboard.html`: offline run comparison dashboard.
 - `tests/`: unit, randomized solver, CSV, cache, and optional official sample checks.
