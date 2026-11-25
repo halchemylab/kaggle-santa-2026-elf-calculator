@@ -174,11 +174,41 @@ task time in this run; equal candidate counts do not equalize work. Total run wa
 time was 148.3 seconds. The combined best-per-puzzle portfolio across all methods
 and seeds was 64,238 instructions, separate from any individual method/seed score.
 
-The new method is available through `src.solvers` and `src.benchmark`; the
-submission-solving CLI still uses the original greedy implementation.
+The method is available through `src.solvers`, `src.benchmark`, and
+`src.solve --method factor_offset --candidates 13`.
 
 ```powershell
 python -m src.benchmark --methods binary base_expansion greedy factor_offset --seeds 2026 2027 2028 --candidates 13 --workers 4 --split train --label "Factor and retained-value offset experiment"
+```
+
+### Selected-settings holdout evaluation (November 24, 2026 local time)
+
+The post-pull development rerun `20261125T041020Z-0cc87e75` exactly reproduced
+the instruction totals above, with matching puzzle fingerprints. Settings were
+then frozen before evaluating the 40-puzzle holdout: 13 candidates, seeds
+2026/2027/2028, four workers, no time cutoff, and no cache access.
+
+Holdout run `20261125T041327Z-2f0ea9b9`:
+
+| Method | Seed 2026 | Seed 2027 | Seed 2028 |
+| --- | ---: | ---: | ---: |
+| greedy | 20,493 | 20,493 | 20,493 |
+| factor_offset | 17,700 | 17,673 | 17,675 |
+
+Factor/offset improved all 40 puzzles in every seed, with no ties or regressions.
+Savings were 2,793–2,820 instructions (13.63–13.76%). All 240 programs validated;
+all six exported CSVs were independently replayed successfully. Wall time was
+30.0 seconds; mean summed task time was about 2.5 times greedy's on this machine.
+The combined portfolio was 17,670 instructions; it is separate from each individual
+method/seed score. These remain practice results. The holdout has now been evaluated;
+do not tune settings against it.
+
+The selected method is now exposed in `src.solve`. Existing invocations retain
+their historical greedy schedule; explicit `--method` uses benchmark seeds and
+budgets. Cache and export validation are unchanged.
+
+```powershell
+python -m src.benchmark --methods greedy factor_offset --seeds 2026 2027 2028 --candidates 13 --workers 4 --split holdout --label "Selected factor-offset settings holdout evaluation"
 ```
 
 ## Adding an experiment

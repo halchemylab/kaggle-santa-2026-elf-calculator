@@ -12,9 +12,26 @@ instructions versus greedy's 74,030 per seed: about 13.15% fewer. Each seed impr
 CSVs validated. Mean summed task time was about 2.2 times greedy's in this run.
 Run: `20261122T210642Z-9ed33410`; wall time 148.3 seconds. Holdout untouched.
 
-Next: inspect these development results, decide whether to keep the settings,
-then evaluate holdout explicitly. If adopting the method for export, expose the
-common solver interface in `src.solve`, which still uses the original greedy.
+The November 24 post-pull development rerun exactly reproduced these scores.
+The selected settings were then evaluated on holdout (run
+`20261125T041327Z-2f0ea9b9`): factor/offset used 17,700 / 17,673 / 17,675
+instructions versus greedy's 20,493 per seed, improving all 40 puzzles in every
+seed (13.63–13.76% fewer instructions). All 240 programs and six CSVs validated.
+The holdout has now been evaluated; do not tune against it.
+
+`src.solve --method factor_offset --candidates 13 --seed 2026 --workers 4`
+now exposes the common solver interface for cache updates and validated export.
+Commands without `--method` retain the historical greedy behavior.
+
+The full 200-puzzle practice export at seed 2026 was generated as
+`submissions/practice_factor_offset_v1.csv`: 81,994 instructions, all 200 programs
+independently replayed successfully. This is a practice artifact, not a competition
+submission. Tests: 35 passed, one official-sample skip; dashboard smoke check passed
+with both development and holdout runs in history. Local artifacts remain ignored.
+
+Next: obtain the official scored puzzles and sample, confirm the open rule
+assumptions, and validate the sample before producing a scored submission.
+Further algorithm experiments should be selected using development puzzles.
 
 ## Resume
 
@@ -25,11 +42,11 @@ common solver interface in `src.solve`, which still uses the original greedy.
 3. Compare `base_expansion` as reference against `greedy`, with the same seed/run.
    Inspect the puzzles that improved or regressed. Visually check the dashboard:
    interaction tests passed, but no browser was connected for layout inspection.
-4. Review the implemented factor/offset method against greedy. Benchmark further
-   changes on the development split with the same
-   settings and seeds, and inspect both instruction savings and added runtime.
-5. Keep the 40-puzzle holdout for evaluation after selecting the new settings.
-   Learning-guided search can come later, once we have useful search examples.
+4. Factor/offset has passed development and holdout evaluation. Benchmark further
+   changes on the development split with the same settings and seeds, and inspect
+   both instruction savings and added runtime.
+5. Keep holdout results as the frozen selected-settings evaluation. Learning-guided
+   search can come later, once we have useful search examples.
 
 ## Current reference results
 

@@ -21,6 +21,21 @@ descending, and seeded random target orders, and validates every result. It
 prints total instruction counts, runtime, and the 20 hardest puzzles. Detailed
 scores are written to `submissions/solve_report.json`.
 
+The selected factor/offset method is also available for validated exports:
+
+```powershell
+python -m src.solve --method factor_offset --candidates 13 --seed 2026 --workers 4 --output submissions/practice_factor_offset_v1.csv --report submissions/practice_factor_offset_report.json
+python -m src.score --puzzles data/practice_puzzles.csv --submission submissions/practice_factor_offset_v1.csv
+```
+
+Explicit `--method` choices use the same solver interface, per-puzzle seed, and
+candidate schedule as benchmarks. The default candidate cap is 13. `--restarts`
+and `--bases` apply only to commands without `--method`; existing commands keep
+their original greedy behavior. The default output is
+`submissions/practice_<method>_v1.csv`; `--competition` requires an explicit output
+path. Exports may include shorter validated cached programs, so use `src.benchmark`
+for fresh comparisons. Reports record the selected method, interface, and budget.
+
 ## Compare algorithms and review runs
 
 ```powershell
@@ -127,12 +142,13 @@ register. Partial base-expansion values never exceed their target. A determinist
 binary construction is always tried as a fallback and comparison. Every candidate
 is independently replayed before selection, caching, and CSV export.
 
-The benchmark-only `factor_offset` method also tries retained-value products with
+The `factor_offset` method also tries retained-value products with
 small signed offsets and sums/differences with retained values. It constructs one
 quotient or difference by base expansion and uses the plan only when its estimated
 instruction count is shorter than plain expansion. It uses the same candidate
-schedule and binary fallback as greedy. `src.solve` still uses the original greedy
-method. A separate experimental beam method handles tiny puzzles only.
+schedule and binary fallback as greedy. Select it with
+`src.solve --method factor_offset --candidates 13`. A separate experimental beam
+method handles tiny puzzles only.
 
 ## Project map
 
