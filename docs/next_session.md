@@ -3,6 +3,27 @@
 The validator, greedy solver, benchmark runner, and offline dashboard are implemented.
 See README.md for commands and docs/benchmarking.md for experiment definitions.
 
+## Latest session: November 25 diagnostics
+
+Factor/offset candidate budgets of 13, 25, and 49 were compared on development
+only, with seeds 2026/2027/2028 and four workers. Totals were respectively
+64,294/64,290/64,309; 64,193/64,209/64,226; and 64,143/64,148/64,161.
+Going from 13 to 49 saved about 0.23% for about 3.9 times the wall time.
+All 1,440 programs and nine CSVs validated. No new holdout evaluation occurred.
+The combined-seed export was removed at the user's request; do not recreate it
+without a new request.
+
+The 49-candidate seed-2026 audit found only 10 dependency-prunable instructions
+out of 64,143, but 2,452 recreations of previously generated and lost values.
+An isolated prefix-retention probe improved eight of nine selected puzzles and
+tied one: 5,677 to 5,601 instructions (1.34%). This is a deliberately selected
+sample, not a demonstrated full-set gain. Production solver behavior is unchanged.
+
+Next solver experiment: evaluate prefix retention as a separate candidate on
+all development puzzles with matched settings and regression checks. Do not tune
+on holdout. See [diagnostic findings and reproduction commands](program_diagnosis.txt).
+Scripts live in `benchmarks/`; generated artifacts remain ignored under `runs/`.
+
 ## Latest experiment: factor/offset construction
 
 Implemented `factor_offset` in the common solver interface. On the 160 development
@@ -70,6 +91,6 @@ target coverage against the Data rules. Work on practice algorithms can continue
 
 Suggested next prompt:
 
-> Read AGENTS.md and docs/next_session.md. Review factor_offset versus greedy on
-> the development split and help select the next experiment. Leave the holdout
-> untouched unless we explicitly choose to evaluate the selected settings.
+> Read AGENTS.md, docs/next_session.md, and docs/program_diagnosis.txt. Evaluate
+> prefix retention against factor_offset on development puzzles with matched
+> settings, checking regressions and runtime. Leave holdout untouched.

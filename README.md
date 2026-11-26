@@ -5,6 +5,8 @@ The existing GitHub repository name, `kaggle-santa-2026-elf-calculator`, works w
 no rename is needed. Python 3.11+ is sufficient. There are no external dependencies.
 
 Returning to the project? Start with [next-session notes](docs/next_session.md).
+The latest [program diagnosis](docs/program_diagnosis.txt) records search-budget
+results, the prefix-retention probe, and commands to reproduce both.
 
 ## Quick start (PowerShell, repository root)
 

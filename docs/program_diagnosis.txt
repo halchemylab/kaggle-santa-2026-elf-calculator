@@ -1,0 +1,97 @@
+Development program diagnosis
+
+Evidence
+- Source: 49-candidate factor_offset development run 20261126T042228Z-c1b986b8,
+  seed 2026. All 160 saved programs replayed, with puzzle fingerprints checked.
+- Total: 64,143 instructions. Only 10 instructions can be removed by keeping
+  the dependencies of each target's first production. Every reduced program
+  was independently validated. This is dependency pruning, not a proof that
+  no other algebraic or coverage-preserving simplification exists.
+- 2,452 instruction results recreate a previously generated value no longer
+  present. For 2,451, its most recent loss occurred when a source register was
+  overwritten; only one followed an unrelated destination overwrite. These
+  counts are observations, not a count of instructions guaranteed removable.
+- Code inspection: construct() uses a single accumulator for every base digit,
+  immediately discarding intermediate prefixes rather than retaining them.
+- The 38 independent-family puzzles consume 22,871 instructions (35.7% of the
+  total). They dominate the expensive end, but other families also matter.
+
+Exploratory experiment
+- Selected the five most expensive development programs plus the most expensive
+  example in each of the other four families (nine puzzles, deliberately biased
+  toward expensive examples).
+- One change: allocate a destination for each base digit, allowing previous
+  prefix values to survive under the existing LRU policy.
+- Ran baseline and variant fresh through src.solvers with factor_offset,
+  49 candidates, seed 2026, one worker, no cutoff or cache access.
+- Baseline reproduced the saved instruction counts exactly. All returned
+  candidates were validated by the common solver and final programs independently
+  validated. The isolated variant is saved here; production code is unchanged.
+
+Puzzle          Family          Baseline  Retain prefixes  Saved
+practice_0055   independent           811              806      5
+practice_0135   independent           811              808      3
+practice_0054   independent           809              805      4
+practice_0018   independent           804              800      4
+practice_0138   independent           804              801      3
+practice_0085   mixed                 704              697      7
+practice_0155   multiplicative        346              321     25
+practice_0088   shared                580              555     25
+practice_0039   tiny                    8                8      0
+TOTAL                              5,677            5,601     76
+
+Interpretation
+- Retaining prefixes saved 76 instructions (1.34%) across the selected sample:
+  eight improvements, one tie, no regressions.
+- Gains were small on the five hardest independent examples (19/4,039, 0.47%),
+  larger on the shared (4.31%) and multiplicative (7.23%) examples.
+- This supports testing prefix retention across the development set. It does
+  not establish an overall improvement, isolate every effect of changed register
+  contents, or prove that register management is the dominant remaining limit.
+- Dependency cleanup alone is a low-priority route for whole-set improvements.
+- No ML model or target-ordering experiment was evaluated; neither is ruled out.
+
+Recommended next experiment
+Add prefix retention as a separate, optional candidate method and compare against
+factor_offset on all 160 development puzzles, seeds 2026/2027/2028, 49 candidates,
+matching workers, no cutoff and no caches. Keep the original method as fallback,
+measure per-puzzle regressions and runtime, and validate every result. Do not tune
+on holdout. Larger changes to arithmetic construction may still be necessary on
+independent puzzles if retention's small gain there persists.
+
+Local artifacts (ignored)
+audit.json: per-puzzle operation counts, target segments and exact arithmetic traces.
+prefix_retention_ablation.json: matched scores, fingerprints, timings and source hashes.
+prefix_retention_variant.py: exact diagnostic variant; not installed into src/.
+
+Candidate-budget experiment (November 25, local time)
+Candidates  Seed 2026  Seed 2027  Seed 2028  Run wall seconds
+13             64,294     64,290     64,309              75.0
+25             64,193     64,209     64,226             152.2
+49             64,143     64,148     64,161             292.8
+Runs: 20261126T041839Z-dd476ad1, 20261126T041955Z-e5e09468,
+20261126T042228Z-c1b986b8. All 1,440 programs and nine exported CSVs validated.
+Four workers; no time cutoffs or cache access. Every larger-budget result was
+no worse per puzzle/seed. More random orders yielded diminishing returns.
+
+Reproduction (repository root; standard library only)
+Past runs are ignored and are not transferred by git. On another computer,
+first recreate the needed run; substitute its generated directory below:
+
+python -m src.benchmark --methods factor_offset --seeds 2026 2027 2028 --candidates 49 --workers 4 --split train --label "Factor-offset candidate budget 49 development comparison"
+python -m benchmarks.diagnose_programs --run runs/<generated-run-id>
+python -m benchmarks.prefix_retention_probe
+
+The audit checks the frozen development split, puzzle fingerprints, and every
+program. The probe inherits seed and candidate budget from the audit, validates
+each candidate, and checks that baseline scores reproduce the audit. It fails
+if the source transformation no longer matches the constructor. Generated
+variant source and results stay under runs/program_diagnosis/.
+
+To reproduce the candidate-budget comparison, also run the benchmark command
+above at 13 and 25 candidates, using the corresponding budget in each label:
+python -m benchmarks.review_candidate_budgets
+
+The review replays all nine CSVs and checks matching puzzle fingerprints. It
+selects the latest directory for each exact budget label. No diagnostic script
+updates caches, exports a combined submission, or changes production methods.
