@@ -7,7 +7,7 @@ import time
 from .greedy import apply, solve_one
 from .validator import validate
 
-METHODS = ('binary', 'base_expansion', 'greedy', 'factor_offset', 'beam')
+METHODS = ('binary', 'base_expansion', 'greedy', 'factor_offset', 'factor_prefix', 'beam')
 
 
 @dataclass(frozen=True)
@@ -118,8 +118,9 @@ def solve(puzzle, method, *, seed=2026, budget=None):
         cycle = attempt // 3
         order = ('ascending', 'descending')[cycle] if cycle < 2 else 'random'
         candidate = solve_one(puzzle, base=base, order=order,
-                              seed=seed + cycle, greedy=method in ('greedy', 'factor_offset'),
-                              factor_offset=method == 'factor_offset')
+                              seed=seed + cycle, greedy=method in ('greedy', 'factor_offset', 'factor_prefix'),
+                              factor_offset=method in ('factor_offset', 'factor_prefix'),
+                              retain_prefixes=method == 'factor_prefix')
         validate(puzzle, candidate)
         solution.candidates += 1
         if len(candidate) < len(solution.program):

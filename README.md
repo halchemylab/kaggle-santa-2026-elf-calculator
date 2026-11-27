@@ -45,7 +45,7 @@ python -m src.benchmark --workers 4 --label "First comparison"
 ```
 
 This compares binary construction, larger-base construction, greedy, factor/offset
-construction, and a tiny-puzzle beam search on a fixed 160-puzzle development set,
+construction, experimental prefix retention, and a tiny-puzzle beam search on a fixed 160-puzzle development set,
 with three seeds. Every result is
 measured fresh and independently validated. It saves a new run under `runs/` and
 automatically rebuilds **`runs/dashboard.html`**. Open that file in your browser.
@@ -151,6 +151,15 @@ instruction count is shorter than plain expansion. It uses the same candidate
 schedule and binary fallback as greedy. Select it with
 `src.solve --method factor_offset --candidates 13`. A separate experimental beam
 method handles tiny puzzles only.
+
+The experimental `factor_prefix` method uses the same factor/offset planning and
+candidate schedule, but allocates a register for each base digit so earlier
+prefixes can survive for reuse. It is compared independently against
+`factor_offset`; neither method reads cached solutions in benchmarks.
+
+```powershell
+python -m src.benchmark --methods factor_offset factor_prefix --seeds 2026 2027 2028 --candidates 49 --workers 4 --split train --label "Prefix retention full development comparison - 49 candidates"
+```
 
 ## Project map
 

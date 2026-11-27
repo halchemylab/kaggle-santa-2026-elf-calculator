@@ -4,7 +4,6 @@ import hashlib
 import json
 from pathlib import Path
 import time
-from unittest.mock import patch
 
 from src import solvers
 from src.benchmark import select_split
@@ -30,23 +29,14 @@ def main():
     budget = solvers.SearchBudget(**audit['summary']['budget'])
     assert budget.seconds is None, 'Use a reproducible candidate count, not a time cutoff'
     source = Path('src/greedy.py').read_text(encoding='utf-8')
-    old = '        destination = allocate()\n        for digit in reversed(digits):\n'
-    new = '        for digit in reversed(digits):\n            destination = allocate()\n'
-    assert source.count(old) == 1
-    variant_source = source.replace(old, new)
-    scope = {'__name__': 'src.diagnostic_prefix_retention', '__package__': 'src'}
-    exec(compile(variant_source, '<diagnostic_prefix_retention>', 'exec'), scope)
     results = []
     for key in ids:
         p = puzzles[key]
         timings, solutions = {}, {}
         for method in ('baseline', 'retain_prefixes'):
             started = time.perf_counter()
-            if method == 'baseline':
-                solution = solvers.solve(p, 'factor_offset', seed=seed, budget=budget)
-            else:
-                with patch.object(solvers, 'solve_one', scope['solve_one']):
-                    solution = solvers.solve(p, 'factor_offset', seed=seed, budget=budget)
+            solver_method = 'factor_offset' if method == 'baseline' else 'factor_prefix'
+            solution = solvers.solve(p, solver_method, seed=seed, budget=budget)
             steps = validate(p, solution.program)
             timings[method] = time.perf_counter() - started
             solutions[method] = steps
@@ -59,11 +49,10 @@ def main():
     report = {'description': 'Exploratory matched ablation on nine selected development puzzles',
               'method': 'factor_offset', 'seed': seed, 'candidates': budget.max_candidates, 'workers': 1,
               'baseline_source_sha256': hashlib.sha256(source.encode()).hexdigest(),
-              'variant_source_sha256': hashlib.sha256(variant_source.encode()).hexdigest(),
+              'variant_method': 'factor_prefix',
               'change': 'Allocate a destination for each base digit rather than overwriting every prefix in one register',
               'results': results, 'total_saved': sum(r['saved'] for r in results)}
     (out / 'prefix_retention_ablation.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
-    (out / 'prefix_retention_variant.py').write_text(variant_source, encoding='utf-8')
     print('TOTAL SAVED:', report['total_saved'])
 
 

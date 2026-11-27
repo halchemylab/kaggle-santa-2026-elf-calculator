@@ -84,9 +84,10 @@ python -m benchmarks.prefix_retention_probe
 
 The audit checks the frozen development split, puzzle fingerprints, and every
 program. The probe inherits seed and candidate budget from the audit, validates
-each candidate, and checks that baseline scores reproduce the audit. It fails
-if the source transformation no longer matches the constructor. Generated
-variant source and results stay under runs/program_diagnosis/.
+each candidate, and checks that baseline scores reproduce the audit. The original
+nine-puzzle experiment used an isolated source transformation. Since November 26,
+the probe calls the optional factor_prefix method directly; output stays under
+runs/program_diagnosis/.
 
 To reproduce the candidate-budget comparison, also run the benchmark command
 above at 13 and 25 candidates, using the corresponding budget in each label:
@@ -94,4 +95,28 @@ python -m benchmarks.review_candidate_budgets
 
 The review replays all nine CSVs and checks matching puzzle fingerprints. It
 selects the latest directory for each exact budget label. No diagnostic script
-updates caches, exports a combined submission, or changes production methods.
+updates caches or exports a combined submission. Existing solver methods keep
+their original defaults; prefix retention must be selected explicitly.
+
+Full development comparison (optional method introduced November 26)
+python -m src.benchmark --methods factor_offset factor_prefix --seeds 2026 2027 2028 --candidates 49 --workers 4 --split train --label "Prefix retention full development comparison - 49 candidates"
+python -m benchmarks.review_prefix_retention --run runs/<generated-run-id>
+
+The matched comparison uses the same binary fallback and candidate schedule for
+both methods. factor_prefix does not run additional factor_offset candidates as
+an extra fallback. This exposes regressions without silently doubling its budget.
+
+Full development results (November 26)
+Run: 20261127T051008Z-e1aa15ee. All 960 programs and six CSVs validated.
+Seed    factor_offset    factor_prefix    Saved    Wins/Ties/Losses
+2026           64,143           62,959    1,184              120/20/20
+2027           64,148           62,962    1,186              120/20/20
+2028           64,161           62,998    1,163              119/21/20
+
+Savings: 1.81-1.85%. Mean summed task time: 369.12 vs 557.19 seconds per seed,
+about 1.51 times baseline. Full run wall time: 697.7 seconds. Holdout untouched.
+Multiplicative puzzles improved most; independent-family gains were only about
+0.35% in total. The worst regressions were +23 instructions on practice_0149
+and practice_0153 in every seed. Prefix retention remains optional. Diagnose
+the regressions before adopting it as a default. Detailed family and per-puzzle
+results are reproducible via benchmarks.review_prefix_retention.

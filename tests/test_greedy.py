@@ -13,6 +13,8 @@ class SolverTests(unittest.TestCase):
                 for greedy in (False, True):
                     validate(p, solve_one(p, base=base, greedy=greedy))
                     validate(p, solve_one(p, base=base, greedy=greedy, factor_offset=True))
+                    validate(p, solve_one(p, base=base, greedy=greedy, factor_offset=True,
+                                          retain_prefixes=True))
 
     def test_eviction_and_large_targets(self):
         rng = random.Random(7)
@@ -20,6 +22,7 @@ class SolverTests(unittest.TestCase):
         for base in (2, 4, 8, 16):
             validate(p, solve_one(p, base=base))
             validate(p, solve_one(p, base=base, factor_offset=True))
+            validate(p, solve_one(p, base=base, factor_offset=True, retain_prefixes=True))
 
     def test_generated_small_puzzles(self):
         rng = random.Random(2026)
@@ -30,6 +33,7 @@ class SolverTests(unittest.TestCase):
                        limit=limit)
             validate(p, solve_one(p, base=8))
             validate(p, solve_one(p, base=8, factor_offset=True))
+            validate(p, solve_one(p, base=8, factor_offset=True, retain_prefixes=True))
 
     def test_factor_and_signed_offset_save_instructions(self):
         for target, limit in ((7063, 7063), (7066, 7066), (7060, 7063),
@@ -47,6 +51,16 @@ class SolverTests(unittest.TestCase):
         candidate = solve_one(p, base=4, factor_offset=True)
         validate(p, candidate)
         self.assertLess(len(candidate), len(solve_one(p, base=4)))
+        retained = solve_one(p, base=4, factor_offset=True, retain_prefixes=True)
+        validate(p, retained)
+
+    def test_prefix_retention_reuses_intermediate_digits(self):
+        # The first target passes through 17; the second can reuse that prefix.
+        p = puzzle(starts=(1,), targets=(273, 274), limit=300)
+        baseline = solve_one(p, base=16, greedy=False)
+        retained = solve_one(p, base=16, greedy=False, retain_prefixes=True)
+        validate(p, retained)
+        self.assertLess(len(retained), len(baseline))
 
     def test_reproducible_and_no_regression_from_baseline(self):
         p = puzzle(targets=(123, 456, 789, 2048), limit=10000)

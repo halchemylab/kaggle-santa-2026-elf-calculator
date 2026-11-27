@@ -20,7 +20,7 @@ def apply(op, a, b):
 
 
 def solve_one(puzzle, *, base=8, order='ascending', seed=0, greedy=True,
-              factor_offset=False):
+              factor_offset=False, retain_prefixes=False):
     if base not in (2, 4, 8, 16):
         raise ValueError('base must be 2, 4, 8, or 16')
     if order not in ('ascending', 'descending', 'random'):
@@ -90,8 +90,12 @@ def solve_one(puzzle, *, base=8, order='ascending', seed=0, greedy=True,
             source = lookup(prefix)
         if not digits:
             return source
-        destination = allocate()
+        destination = None if retain_prefixes else allocate()
         for digit in reversed(digits):
+            # The experiment leaves earlier digit prefixes available for reuse.
+            # The default keeps the historical single-accumulator construction.
+            if retain_prefixes:
+                destination = allocate()
             emit('*', source, constants[base], destination)
             if digit:
                 emit('+', destination, constants[digit], destination)

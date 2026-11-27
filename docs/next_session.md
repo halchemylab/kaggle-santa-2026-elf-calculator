@@ -3,6 +3,34 @@
 The validator, greedy solver, benchmark runner, and offline dashboard are implemented.
 See README.md for commands and docs/benchmarking.md for experiment definitions.
 
+## Latest session: November 26 prefix-retention evaluation
+
+Implemented optional `factor_prefix` and evaluated it against fresh `factor_offset`
+on all 160 development puzzles: 49 candidates, seeds 2026/2027/2028, four workers,
+no cutoff and no cache access. Run `20261127T051008Z-e1aa15ee`:
+
+| Method | Seed 2026 | Seed 2027 | Seed 2028 |
+| --- | ---: | ---: | ---: |
+| factor_offset | 64,143 | 64,148 | 64,161 |
+| factor_prefix | 62,959 | 62,962 | 62,998 |
+
+Prefix retention saved 1,163–1,186 instructions (1.81–1.85%), with mean summed
+task time about 1.51 times baseline. Per seed: 119–120 wins, 20–21 ties, and
+20 losses. Worst losses were +23 instructions on practice_0149 and practice_0153.
+Multiplicative puzzles improved most (all 29 improved; 6.27–6.56% total savings);
+independent puzzles improved only about 0.35% in total and had 12 regressions.
+All 960 programs and six exported CSVs validated. Tests: 38 passed, one official
+sample skip; dashboard smoke check passed. Holdout was untouched.
+
+The method remains optional; defaults and the factor_offset construction are
+unchanged. No combined export or cache update was created. For regression/family
+details, run `python -m benchmarks.review_prefix_retention --run runs/<run-id>`.
+
+Next: inspect the 20 regressions before adopting the new method. Retaining more
+prefixes helps overall but can displace useful operands. Either improve that
+tradeoff on development or deliberately budget both methods as alternatives;
+do not silently double a method's candidate budget or tune on holdout.
+
 ## Latest session: November 25 diagnostics
 
 Factor/offset candidate budgets of 13, 25, and 49 were compared on development
@@ -91,6 +119,6 @@ target coverage against the Data rules. Work on practice algorithms can continue
 
 Suggested next prompt:
 
-> Read AGENTS.md, docs/next_session.md, and docs/program_diagnosis.txt. Evaluate
-> prefix retention against factor_offset on development puzzles with matched
-> settings, checking regressions and runtime. Leave holdout untouched.
+> Read AGENTS.md, docs/next_session.md, and docs/program_diagnosis.txt. Review the
+> full prefix-retention results and diagnose the 20 per-seed regressions before
+> choosing the next development experiment. Leave holdout untouched.

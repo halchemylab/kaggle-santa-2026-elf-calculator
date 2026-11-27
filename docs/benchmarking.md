@@ -33,6 +33,7 @@ Positive steps saved always means the candidate uses fewer instructions.
 | base_expansion | Binary fallback plus base-4/8/16 constructions; immediate-target scan disabled |
 | greedy | Identical candidate schedule to base_expansion, with immediate-target scan enabled |
 | factor_offset | Greedy plus retained-value factors with small signed offsets, and nearby retained-value sums/differences |
+| factor_prefix | Factor/offset planning with a new destination for each base digit, retaining earlier prefixes under LRU |
 | beam | Binary fallback plus bounded primitive-instruction beam search on tiny puzzles |
 
 All methods use `solve(puzzle, method, seed=..., budget=SearchBudget(...))` in
@@ -60,6 +61,14 @@ limit, including products before a subtraction. This is bounded local planning,
 not prime factorization or recursive search. Changing the path can change later
 register reuse, so individual puzzles can regress against greedy despite cheaper
 local plans. Equal candidate caps also do not imply equal runtime.
+
+`factor_prefix` isolates prefix retention: it allocates a destination at each
+base digit, rather than overwriting all prefixes in one accumulator. This changes
+which values survive and therefore can change later plans. Its binary fallback,
+target order schedule, bases, and candidate cap match `factor_offset`. It does
+not also run factor/offset candidates as a fallback; measuring both separately
+lets us observe regressions without doubling the experimental method's budget.
+The default `src.solve` behavior and `factor_offset` implementation are unchanged.
 
 Beam search currently applies only when value_limit <= 512, distinct targets <= 6,
 and initial values <= 8. It searches individual legal instructions, preserves
@@ -209,6 +218,44 @@ budgets. Cache and export validation are unchanged.
 
 ```powershell
 python -m src.benchmark --methods greedy factor_offset --seeds 2026 2027 2028 --candidates 13 --workers 4 --split holdout --label "Selected factor-offset settings holdout evaluation"
+```
+
+## Prefix-retention development evaluation (November 26, 2026 local time)
+
+Run `20261127T051008Z-e1aa15ee`: 160 development puzzles, seeds 2026/2027/2028,
+49 candidates per method, four workers, no time cutoff, no cache access. Both
+methods were measured fresh. The baseline exactly reproduced the prior 49-candidate
+instruction totals. All 960 programs validated and all six CSVs replayed successfully.
+
+| Method | Seed 2026 | Seed 2027 | Seed 2028 | Mean summed task seconds per seed |
+| --- | ---: | ---: | ---: | ---: |
+| factor_offset | 64,143 | 64,148 | 64,161 | 369.12 |
+| factor_prefix | 62,959 | 62,962 | 62,998 | 557.19 |
+
+Savings were 1,184 / 1,186 / 1,163 instructions (1.81–1.85%). Prefix retention
+won/tied/lost 120/20/20, 120/20/20, and 119/21/20 puzzles respectively. Worst
+regressions were 23 instructions on each of practice_0149 and practice_0153.
+It used about 1.51 times baseline's mean summed task time; full run wall time
+was 697.7 seconds. Equal candidate caps do not equalize runtime.
+
+Seed-2026 family totals:
+
+| Family | Puzzles | factor_offset | factor_prefix | Saved |
+| --- | ---: | ---: | ---: | ---: |
+| independent | 38 | 22,871 | 22,792 | 79 |
+| mixed | 40 | 19,641 | 19,315 | 326 |
+| multiplicative | 29 | 7,535 | 7,041 | 494 |
+| shared | 37 | 14,018 | 13,733 | 285 |
+| tiny | 16 | 78 | 78 | 0 |
+
+The full development result supports keeping prefix retention as an alternative,
+but it is not a per-puzzle replacement for factor_offset. Holdout was not evaluated;
+no combined export or cache update was produced. `factor_prefix` is explicitly
+selectable through the common interface; default solve behavior is unchanged.
+
+```powershell
+python -m src.benchmark --methods factor_offset factor_prefix --seeds 2026 2027 2028 --candidates 49 --workers 4 --split train --label "Prefix retention full development comparison - 49 candidates"
+python -m benchmarks.review_prefix_retention --run runs/<generated-run-id>
 ```
 
 ## Adding an experiment
