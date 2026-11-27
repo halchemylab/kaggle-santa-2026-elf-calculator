@@ -29,7 +29,10 @@ def solve_one(puzzle, *, base=8, order='ascending', seed=0, greedy=True,
     values = [None] * puzzle.registers
     values[:len(puzzle.starting_values)] = puzzle.starting_values
     program, protected, touched = [], set(), [0] * puzzle.registers
-    remaining = set(puzzle.targets)
+    remaining = set(puzzle.targets) - set(puzzle.starting_values)
+    if not remaining:
+        validate(puzzle, program)
+        return program
 
     def lookup(value):
         return next((i for i, v in enumerate(values) if v == value), None)
@@ -49,7 +52,7 @@ def solve_one(puzzle, *, base=8, order='ascending', seed=0, greedy=True,
             touched[i] = len(program)
         remaining.discard(result)
 
-    # Save 1 permanently. Initial targets still require an emitted instruction.
+    # Save 1 permanently for constructions that still need instructions.
     one = lookup(1)
     if one is None:
         one = allocate()

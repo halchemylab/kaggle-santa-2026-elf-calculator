@@ -11,11 +11,11 @@ class ValidationError(ValueError):
     pass
 
 
-def validate(puzzle, program, *, initial_targets_count=False):
+def validate(puzzle, program, *, initial_targets_count=True):
     """Return instruction count; raise ValidationError with the failing step.
 
-    Starts are placed in consecutive registers from zero. Until confirmed against
-    official Data rules, require initial targets to be produced by an instruction.
+    Starts occupy consecutive registers from zero and count toward coverage,
+    as confirmed by the official Data rules. False replays the historical policy.
     For raw JSON cells, byte limits apply to the original text, including spaces.
     """
     if isinstance(program, str):

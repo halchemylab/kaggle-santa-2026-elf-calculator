@@ -4,6 +4,13 @@ Python tools for exact program validation and a first greedy arithmetic solver.
 The existing GitHub repository name, `kaggle-santa-2026-elf-calculator`, works well;
 no rename is needed. Python 3.11+ is sufficient. There are no external dependencies.
 
+Project closed after the first successful Kaggle submission on November 27, 2026.
+The independently developed solver scored **392,980**, exactly matching local
+validation across all 1,000 puzzles. No public solution programs were imported.
+The final method was `factor_prefix`, with 13 candidates and seed 2026. Source,
+tests, and experiment notes are preserved; downloaded data and generated files
+remain local and ignored by Git.
+
 Returning to the project? Start with [next-session notes](docs/next_session.md).
 The latest [program diagnosis](docs/program_diagnosis.txt) records search-budget
 results, the prefix-retention probe, and commands to reproduce both.
@@ -78,13 +85,13 @@ python -m src.dashboard
 Run records and generated dashboards are ignored by Git. Source code and the frozen
 split are tracked; on another computer, run the command again to create local results.
 
-## Files you still need
+## Official competition files
 
 Download the scored puzzle CSV and `sample_submission.csv` from the competition
 Data tab after joining and accepting the rules. Put extracted files in `data/`.
-Examples below assume the puzzle file is named `scored_puzzles.csv`; substitute
-the actual name if different. Practice data is already available at
-`data/practice_puzzles.csv`, so development can proceed now.
+The official filenames are `puzzles.csv` and `sample_submission.csv`. Both are
+available locally as of November 27 and remain ignored by Git. Fresh clones need
+their own downloads. Practice data is tracked at `data/practice_puzzles.csv`.
 
 If the Kaggle CLI is already installed and authenticated, an alternative is:
 
@@ -100,23 +107,25 @@ best-solution caches are ignored.
 
 ## Confirm the official sample first
 
-Read [the rule notes](docs/competition.md), confirm initialization/target coverage
-against the Data page, then run:
+The [official Data rules](docs/competition.md) confirm that starting values occupy
+consecutive registers and count toward target coverage. To validate the sample:
 
 ```powershell
-python -m src.inspect_data data/scored_puzzles.csv
-python -m src.score --puzzles data/scored_puzzles.csv --submission data/sample_submission.csv --competition --report submissions/sample_report.json
+python -m src.inspect_data data/puzzles.csv
+python -m src.score --puzzles data/puzzles.csv --submission data/sample_submission.csv --competition --report submissions/official_sample_report.json
 python -m unittest discover -s tests -v
 ```
 
-The official sample integration test skips until both files exist. Current
-results are local practice results, not an official sample or leaderboard score.
+The official sample validates locally: 1,000 programs, 1,490,379 instructions,
+maximum 2,873 per puzzle. The integration test skips only when the files are absent.
+The first solver submission was subsequently accepted by Kaggle at 392,980,
+matching local validation. The sample total above is its local reference score.
 
 ## Generate and validate a scored submission
 
 ```powershell
-python -m src.solve --puzzles data/scored_puzzles.csv --output submissions/greedy_v1.csv --report submissions/scored_report.json --workers 4 --restarts 2 --competition
-python -m src.score --puzzles data/scored_puzzles.csv --submission submissions/greedy_v1.csv --competition
+python -m src.solve --puzzles data/puzzles.csv --method factor_prefix --candidates 13 --seed 2026 --workers 4 --cache cache/scored_factor_prefix_13 --output submissions/scored_first.csv --report submissions/scored_first_report.json --competition
+python -m src.score --puzzles data/puzzles.csv --submission submissions/scored_first.csv --competition --report submissions/scored_first_validation.json
 ```
 
 `--competition` requires exactly all 1,000 scored IDs. Upload only a successfully
@@ -131,7 +140,7 @@ cache directory; its workers compute while the parent alone updates the cache.
 Merge all cached solutions without solving again:
 
 ```powershell
-python -m src.merge --puzzles data/scored_puzzles.csv --output submissions/best.csv --competition
+python -m src.merge --puzzles data/puzzles.csv --output submissions/best.csv --competition
 ```
 
 ## How the first solver works

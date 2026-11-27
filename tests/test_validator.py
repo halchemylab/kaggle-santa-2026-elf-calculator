@@ -19,8 +19,11 @@ class ValidatorTests(unittest.TestCase):
     def test_initial_target_policy(self):
         p = puzzle(targets=(3,))
         with self.assertRaises(ValidationError):
-            validate(p, [])
+            validate(p, [], initial_targets_count=False)
         self.assertEqual(validate(p, [], initial_targets_count=True), 0)
+        self.assertEqual(validate(p, []), 0)
+        self.assertEqual(validate(puzzle(starts=(3, 6), targets=(3, 12)),
+                                  [['+', 1, 1, 0]]), 1)
 
     def test_illegal_instructions(self):
         cases = [

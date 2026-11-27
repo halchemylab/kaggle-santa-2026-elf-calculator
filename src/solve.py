@@ -77,6 +77,7 @@ def main():
     write_submission(args.output, puzzles, programs, competition=args.competition)
     scores = {key: len(program) for key, program in programs.items()}
     report = {'puzzle_file': str(args.puzzles), 'puzzle_count': len(puzzles),
+              'initial_targets_count': True,
               'competition': args.competition, 'binary_baseline_total': sum(baselines.values()),
               'best_total': sum(scores.values()), 'runtime_seconds': time.perf_counter() - started,
               'seed': args.seed, 'bases': args.bases if args.method is None else None,

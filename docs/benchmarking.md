@@ -5,6 +5,12 @@ score is total instructions with every puzzle valid. Runtime, seed sensitivity,
 and per-puzzle wins/losses help decide which experiments deserve more computation.
 No reported score is a proof of optimality or a Kaggle leaderboard score.
 
+On November 27 the official Data rules confirmed that initially present targets
+count as covered. New runs record `metadata.initial_targets_count: true`.
+Historical reports without that field used explicit initial-target production.
+The dashboard blocks cross-policy comparisons even with matching puzzle
+fingerprints. Recreate fresh baselines under the confirmed policy before tuning.
+
 ## First commands
 
 ```powershell

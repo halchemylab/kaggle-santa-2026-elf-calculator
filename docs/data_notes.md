@@ -1,7 +1,18 @@
 # Local practice data and first run
 
-Inspected November 21, 2026. Only `data/practice_puzzles.csv` is currently available.
-Neither scored puzzle data nor the official sample submission has been downloaded.
+Practice data was first inspected November 21, 2026. On November 27,
+`data/puzzles.csv` and `data/sample_submission.csv` were added locally (ignored
+by Git). The scored data contains exactly all 1,000 scored IDs. Official Data
+rules confirm that targets present initially count as covered. The sample
+validates with 1,490,379 total instructions and a maximum of 2,873 per puzzle.
+
+First scored export (November 27): `submissions/scored_first.csv`, generated with
+factor_prefix, 13 candidates, seed 2026, four workers, and an isolated scored cache.
+All 1,000 programs independently validate: 392,980 total instructions, maximum
+814 per puzzle, 73.63% fewer instructions than the sample. The user uploaded this
+file and reported successful Kaggle processing with score 392,980, matching the
+local count. Reports and generated CSV remain ignored. The user chose to close
+the project after this first accepted, independently developed submission.
 
 ## Schema
 
@@ -71,21 +82,20 @@ Outputs (ignored by Git):
 
 ## Validation and remaining work
 
-Unit tests cover exact replay, aliasing, historical coverage, conservative initial
+Unit tests cover exact replay, aliasing, historical coverage, official initial
 coverage, illegal arithmetic and register indices, malformed programs, program
 limits, CSV identity/completeness, cache retention, randomized puzzles, large
 integers, and register eviction. The optional official sample test skips until
 its input files are provided. The complete practice CSV was independently scored
 after export and the cache merge was replayed before export.
 
-The official Data page could not be retrieved during setup. Initialization into
-consecutive registers and the treatment of initial target values still need
-confirmation; see docs/competition.md. Explicitly reproducing initial targets
-keeps generated programs conservative. No official sample score is available.
+The user supplied the official Data rules on November 27, resolving initialization
+and initial target coverage; see docs/competition.md. The official sample now
+replays successfully under those rules. Earlier reports predate this confirmation.
 
 Next useful experiments: factor-aware chains for multiplicative/mixed puzzles,
 offset construction from retained targets for shared puzzles, and prefix sharing
 or beam search for expensive independent puzzles. Measure improvements against
-the existing validated per-puzzle cache. Safe instruction removal should use
+fresh baselines with matching coverage rules, without reading caches. Safe instruction removal should use
 dependency/liveness analysis followed by full replay, since register reuse makes
 naive deletion unsafe.

@@ -22,7 +22,7 @@ def inspect(puzzle, program):
     last_loss = {}
     reconstruction_reasons = Counter()
     used_registers = set(range(len(puzzle.starting_values)))
-    target_set = set(puzzle.targets)
+    target_set = set(puzzle.targets) - set(puzzle.starting_values)
     segments, segment_start = [], 0
     operations = Counter()
     rows = []
@@ -58,7 +58,8 @@ def inspect(puzzle, program):
             pending.extend(dependencies[i])
     pruned = [instruction for i, instruction in enumerate(program) if i in live]
     validate(puzzle, pruned)
-    return {'steps': len(program), 'targets': len(target_set), 'operations': dict(operations),
+    return {'steps': len(program), 'targets': len(set(puzzle.targets)),
+            'initial_targets_count': True, 'operations': dict(operations),
             'removable_steps': len(program) - len(pruned),
             'duplicate_results': duplicate_results,
             'evicted_value_reconstructions': evicted_reconstructions,

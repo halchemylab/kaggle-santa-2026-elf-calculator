@@ -42,9 +42,11 @@ class IOTests(unittest.TestCase):
 
     def test_official_sample_when_available(self):
         data = Path('data')
-        puzzles_path = data / 'scored_puzzles.csv'
+        puzzles_path = data / 'puzzles.csv'
+        if not puzzles_path.exists():
+            puzzles_path = data / 'scored_puzzles.csv'
         sample_path = data / 'sample_submission.csv'
         if not puzzles_path.exists() or not sample_path.exists():
-            self.skipTest('Download scored_puzzles.csv and sample_submission.csv into data/')
+            self.skipTest('Download puzzles.csv and sample_submission.csv into data/')
         _, errors = score_submission(load_puzzles(puzzles_path), sample_path, competition=True)
         self.assertEqual(errors, [])

@@ -17,10 +17,12 @@ with all 1000 scored IDs once each and JSON instructions escaped by csv.writer.
 First inspect available files. data/practice_puzzles.csv contains practice data.
 Additional downloads go in data/. If scored puzzles or sample_submission.csv
 are absent, continue useful work on practice puzzles, state precisely what is
-missing, and never claim to have produced a competition-ready submission. Confirm
-register initialization and whether initial values count as covered targets from
-the official Data page or replay code. Until then retain conservative explicit
-coverage. Read per-puzzle limits; the pasted global upper bound was incomplete.
+missing, and never claim to have produced a competition-ready submission.
+Official Data rules were supplied on November 27: starting values initialize
+consecutive registers beginning at zero and cover matching targets immediately.
+Coverage survives overwrites. Read per-puzzle limits; the pasted global upper
+bound was incomplete. Older benchmarks used conservative explicit initial-target
+production and must not be treated as directly comparable to new-policy runs.
 
 Run tests and score the official sample if available. Inspect schema and a few
 local rows, target counts/magnitudes, starts, limits, and practice metadata. Update

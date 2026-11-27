@@ -1,7 +1,39 @@
 # Pick up here next session
 
+## Final checkpoint: project closed November 27, 2026
+
+The user chose to stop after the first successful Kaggle submission. Kaggle
+reported `scored_first.csv` as Complete with score **392,980**, matching the local
+validator exactly. This was an independently developed submission; no public
+solution programs were imported. No further experiments are planned. The notes
+below preserve possible future work only if the user decides to return.
+
 The validator, greedy solver, benchmark runner, and offline dashboard are implemented.
 See README.md for commands and docs/benchmarking.md for experiment definitions.
+
+## Latest session: November 27 official data and rules
+
+`data/puzzles.csv` and `data/sample_submission.csv` are present locally and ignored
+by Git. The user supplied the official Data rules: starts initialize consecutive
+registers, matching targets count as covered immediately, and coverage survives
+overwrites. Validator, construction solvers, and beam search now follow that rule.
+The official sample passes all 1,000 puzzles: 1,490,379 instructions, maximum
+2,873. All 40 tests pass, including the formerly skipped official-sample test.
+
+New benchmark reports label `initial_targets_count: true`; older reports without
+the field used the conservative policy. The dashboard blocks comparisons across
+coverage policies. Recreate baseline runs before future tuning; do not attribute
+coverage-rule savings to an algorithm change. The frozen puzzle split is unchanged.
+
+The first scored export uses factor_prefix, 13 candidates, seed 2026, four workers,
+and isolated cache/scored_factor_prefix_13. See README for reproduction commands.
+Generated `submissions/scored_first.csv`: all 1,000 programs independently
+validated, 392,980 instructions, maximum 814 per program, 230.1 seconds solve wall
+time. This is 73.63% fewer instructions than the official sample. Validation report:
+`submissions/scored_first_validation.json`. The user uploaded this file and
+reported Kaggle acceptance at exactly 392,980. The submission description was
+"First validated submission - prefix retention, 392980 instructions". Do not
+upload practice files or edit the generated CSV in Excel.
 
 ## Latest session: November 26 prefix-retention evaluation
 
@@ -113,9 +145,8 @@ scan saved another 106 net steps. The current beam is restricted to tiny puzzles
 and does not test its potential on the large puzzles. These are practice results,
 not optimality proofs or leaderboard scores.
 
-The official scored puzzle CSV and sample submission are still absent. Before a
-competition submission, obtain them and confirm register initialization and initial
-target coverage against the Data rules. Work on practice algorithms can continue.
+The official scored CSV and sample are now local. The latest-session section
+above supersedes the earlier absence and initialization assumptions.
 
 Suggested next prompt:
 

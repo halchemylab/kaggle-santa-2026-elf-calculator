@@ -185,7 +185,8 @@ def run_benchmark(puzzles, *, methods, seeds, budget, run_dir, workers=1,
     summaries, portfolio = summarize(rows, puzzles)
     report = {'schema_version': 1, 'run_id': directory.name,
               'created_at': datetime.now(timezone.utc).isoformat(),
-              'metadata': metadata or {}, 'budget': asdict(budget), 'workers': workers,
+              'metadata': {**(metadata or {}), 'initial_targets_count': True},
+              'budget': asdict(budget), 'workers': workers,
               'methods': list(methods), 'seeds': list(seeds),
               'wall_seconds': time.perf_counter() - started,
               'puzzles': [{'id': p.id, 'fingerprint': p.fingerprint(),
@@ -226,6 +227,7 @@ def main():
         split_path.write_text(json.dumps(manifest, indent=2), encoding='utf-8')
     selected = select_split(puzzles, manifest, args.split)
     metadata = {'label': args.label, 'dataset_path': args.puzzles,
+                'initial_targets_count': True,
                 'dataset_fingerprint': dataset_fingerprint(puzzles), 'split': args.split,
                 'split_file': str(split_path), 'git': git_metadata(),
                 'python': platform.python_version(), 'platform': platform.platform(),

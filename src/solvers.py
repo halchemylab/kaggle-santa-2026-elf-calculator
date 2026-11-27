@@ -46,7 +46,7 @@ def beam_search(puzzle, fallback, budget, expired):
     if puzzle.value_limit > 512 or len(set(puzzle.targets)) > 6 or len(puzzle.starting_values) > 8:
         return fallback, 0, False, ['Beam skipped: tiny-puzzle limits exceeded; binary fallback used.']
     # State: defined register values, uncovered targets, instruction sequence.
-    states = [(puzzle.starting_values, frozenset(puzzle.targets), ())]
+    states = [(puzzle.starting_values, frozenset(puzzle.targets) - set(puzzle.starting_values), ())]
     best, expansions = fallback, 0
 
     def rank(state):

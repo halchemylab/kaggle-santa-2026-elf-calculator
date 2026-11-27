@@ -15,6 +15,13 @@ from tests.helpers import puzzle
 
 
 class SolverInterfaceTests(unittest.TestCase):
+    def test_initial_targets_need_no_instructions(self):
+        from src.solvers import METHODS
+        p = puzzle(starts=(3, 6), targets=(3, 6), limit=6)
+        for method in METHODS:
+            with self.subTest(method=method):
+                self.assertEqual(solve(p, method).program, [])
+
     def test_methods_return_valid_fresh_solutions(self):
         p = puzzle(targets=(2, 5), limit=8)
         baseline = solve(p, 'binary')

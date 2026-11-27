@@ -10,7 +10,7 @@ Read README.md and docs/competition.md before changing solver behavior.
 - Limits: 48 registers, 4,096 instructions, 131,072 UTF-8 bytes per program cell.
 - Keep scored and practice results separate. Only a complete set of scored_0001 through
   scored_1000 may be labeled a competition submission.
-- Initial target coverage is unconfirmed: default to explicitly producing initial targets.
+- Official Data rules confirmed: targets present in starting_values count as covered.
 - Data belongs in data/; generated CSVs in submissions/; solutions in cache/.
   Track data/practice_puzzles.csv so fresh clones include practice input.
   Other data files, generated submissions, and caches are ignored.

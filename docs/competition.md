@@ -3,8 +3,8 @@
 Source: competition overview and evaluation pasted by the user on November 21,
 2026. Official competition: https://www.kaggle.com/competitions/santa-2026
 Data rules: https://www.kaggle.com/competitions/santa-2026/data
-The Data page could not be retrieved during setup; the notes below are not a
-substitute for its initialization and target-coverage definitions.
+The user supplied the official Data page text on November 27, 2026, confirming
+initialization and target coverage. The scored puzzles and sample are now local.
 
 ## Calculator and scoring
 
@@ -34,21 +34,29 @@ Toy example: initial register 0 holds 3, targets are 1, 2, 5, 8:
 `[["/",0,0,1],["-",0,1,2],["+",0,2,3],["+",0,3,4]]`.
 Its illustrative ID must not appear in a competition submission.
 
-## Assumptions requiring the Data page or official replay code
+## Initialization and coverage confirmed from the Data page
 
 1. `starting_values` initialize consecutive registers beginning at register 0;
    every other register starts undefined.
-2. Whether initial values count toward target coverage is unspecified in the
-   pasted overview. This repository conservatively requires an instruction to
-   produce each target, even if initially present. This may cost extra instructions
-   but ensures coverage under either interpretation. The simulator has an explicit
-   `initial_targets_count` option for testing after the official rule is confirmed.
+2. Targets are covered when their values appear in any register, including at
+   the start. Coverage survives overwrites. Validator and solvers now use this
+   rule by default. `initial_targets_count=False` remains available in the
+   validator for historical replay. An empty program is valid if all targets
+   are present initially; instructions after coverage must still be legal.
 3. `lower_bound`, `family`, and `design_tier` are practice metadata, not mandatory
-   inputs to the solver. Do not treat a lower bound as an achieved solution.
+   inputs to the solver. `lower_bound` is the number of distinct targets absent
+   from starting_values. It is generally loose and need not be achievable.
 
-The official sample is said to use at most 2,873 instructions in any program.
-That claim and its total score have not been checked locally because the file
-has not been provided. Do not infer leaderboard competitiveness from this maximum.
+The official sample was independently replayed on November 27: all 1,000
+programs validate, totaling 1,490,379 instructions, with a maximum of 2,873.
+The old conservative coverage policy rejected three sample rows solely because
+initially present targets were not reproduced. The user subsequently submitted
+`scored_first.csv`; Kaggle accepted it with score 392,980, exactly matching local
+validation. This result was reported by the user on November 27.
+
+Benchmarks before this confirmation required explicit production of initial
+targets. New reports record `initial_targets_count: true`; reports lacking the
+field used the historical policy. The dashboard blocks cross-policy comparisons.
 
 ## Dates supplied by the user
 
